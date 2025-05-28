@@ -22,28 +22,38 @@ export default function PublishEvent() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/auth/organizer/4")
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener datos");
-        return res.json();
-      })
-      .then((data) => setOrganizer(data))
-      .catch((err) => {
-        console.error("Error:", err);
-      });
-  }, []);
+  const storedUser = localStorage.getItem("organizer");
+  console.log("Valor de localStorage:", storedUser);
+
+  if (storedUser) {
+    const organizerData = JSON.parse(storedUser);
+    const organizerId = organizerData.id;
+    console.log("ID del organizador:", organizerId);
+
+    if (organizerId) {
+      fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener datos");
+          return res.json();
+        })
+        .then((data) => {
+          console.log("Datos recibidos de la API:", data);
+          setOrganizer(data);
+        })
+        .catch((err) => {
+          console.error("Error:", err);
+          setOrganizer(null);
+        });
+    }
+  }
+}, []);
+
+
 
   const getInitials = (nombre, apellido) => {
     if (!nombre || !apellido) return "";
     return `${nombre[0]}${apellido[0]}`.toUpperCase();
   };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("organizer");
-    if (storedUser) {
-      setOrganizer(JSON.parse(storedUser));
-    }
-  }, []);
 
   // Funciones del menú de usuario - ADAPTADAS A REACT ROUTER
   const handleLogout = () => {
@@ -133,7 +143,7 @@ export default function PublishEvent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-600 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
       {/* Header con usuario - Z-INDEX MEJORADO */}
       <header className="border-b border-white/10 bg-black/20 backdrop-blur-sm sticky top-0 z-[100]">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -191,7 +201,7 @@ export default function PublishEvent() {
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-1 sm:space-x-2 text-white hover:bg-white/10 px-2 sm:px-3 py-2 rounded-md transition-colors duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 text-white hover:bg-white/10 px-2 sm:px-3 py-2 rounded-md transition-colors duration-200 cursor-pointer"
               >
                 {/* Avatar */}
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-cyan-400 bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center">
@@ -207,7 +217,7 @@ export default function PublishEvent() {
                       ? `${organizer.nombre} ${organizer.apellido}`
                       : "Cargando..."}
                   </p>
-                  <p className="text-xs text-white/70">Usuario</p>
+                  <p className="text-xs text-white/70">Organizador</p>
                 </div>
               </button>
 
@@ -309,7 +319,7 @@ export default function PublishEvent() {
                           handleLogout();
                         }
                       }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200"
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200 cursor-pointer"
                     >
                       <svg
                         className="mr-3 h-4 w-4"
@@ -337,7 +347,7 @@ export default function PublishEvent() {
       {/* Overlay para cerrar el menú - Z-INDEX CORRECTO */}
       {isUserMenuOpen && (
         <div
-          className="fixed inset-0 z-[9998]"
+          className="fixed inset-0 z-[99]"
           onClick={() => setIsUserMenuOpen(false)}
         ></div>
       )}

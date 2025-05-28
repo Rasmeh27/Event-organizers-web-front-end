@@ -4,17 +4,19 @@ import { useState } from "react";
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(""); 
+  const [success, setSuccess] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const togglePassword = () => setShowPassword(!showPassword);
+  const [loading, setLoading] = useState(false);
 
   const haddleRegister = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:8080/api/auth/register", {
@@ -25,22 +27,21 @@ export default function RegisterPage() {
         body: JSON.stringify({ nombre, apellido, email, password }),
       });
 
-      if(res.ok) {
+      if (res.ok) {
         setSuccess(true);
         setTimeout(() => {
           window.location.href = "/login"; // redirige a la página principal del organizador
         }, 1500); // redirige a la página principal del organizador
-      }else {
+      } else {
         const errMsg = await res.text();
-        setError(errMsg || "Error al registrar"); 
+        setError(errMsg || "Error al registrar");
       }
-
     } catch (err) {
       setError("Error de conexión con el servidor");
+    } finally {
+      setLoading(false);
     }
-    
-  }
-  
+  };
 
   return (
     <div
@@ -61,6 +62,7 @@ export default function RegisterPage() {
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               className="w-1/2 p-2 rounded border outline-none bg-transparent border-gray-500"
+              required
             />
             <input
               type="text"
@@ -68,6 +70,7 @@ export default function RegisterPage() {
               value={apellido}
               onChange={(e) => setApellido(e.target.value)}
               className="w-1/2 p-2 rounded border outline-none bg-transparent border-gray-500"
+              required
             />
           </div>
 
@@ -79,6 +82,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Correo electrónico"
               className="w-full pl-10 p-2 rounded border outline-none bg-transparent border-gray-500"
+              required
             />
           </div>
 
@@ -90,6 +94,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-10 p-2 rounded border outline-none bg-transparent border-gray-500"
+              required
             />
             <span
               onClick={togglePassword}
@@ -114,6 +119,7 @@ export default function RegisterPage() {
                 }
               }}
               className="w-full pl-10 pr-10 p-2 rounded border outline-none bg-transparent border-gray-500"
+              required
             />
             <span
               onClick={togglePassword}
@@ -126,8 +132,35 @@ export default function RegisterPage() {
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded cursor-pointer transition duration-300 ease-in-out"
+            disabled={loading}
           >
-            Acceder
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  ></path>
+                </svg>
+                Registrando...
+              </span>
+            ) : (
+              "Acceder"
+            )}
           </button>
         </form>
 

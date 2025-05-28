@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem("usuario", JSON.stringify(data));
+        localStorage.setItem("organizer", JSON.stringify(data));
         window.location.href = "/publish"; // redirige a la página principal del organizador
       } else {
         const errMsg = await res.text();
@@ -59,6 +59,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 p-2 rounded border outline-none bg-transparent border-gray-500"
+              required
             />
           </div>
 
@@ -70,6 +71,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-10 p-2 rounded border outline-none bg-transparent border-gray-500"
+              required
             />
             <span
               onClick={togglePassword}
