@@ -7,15 +7,34 @@ export default function ViewEventPage() {
   const [event, setEvent] = useState([])
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [organizer, setOrganizer] = useState(null) 
   const [deleteLoading, setDeleteLoading] = useState(null)
 
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/auth/organizer/4")
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener datos");
+        return res.json();
+      })
+      .then((data) => setOrganizer(data))
+      .catch((err) => {
+        console.error("Error:", err);
+      });
+  }, []);
+
+  const getInitials = (nombre, apellido) => {
+    if (!nombre || !apellido) return "";
+    return `${nombre[0]}${apellido[0]}`.toUpperCase();
+  };
+
   // Usuario actual (mismo que en la página anterior)
-  const currentUser = {
-    name: "María González",
-    email: "maria@example.com",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "MG",
-  }
+  // const currentUser = {
+  //   name: "María González",
+  //   email: "maria@example.com",
+  //   avatar: "/placeholder.svg?height=40&width=40",
+  //   initials: "MG",
+  // }
 
   useEffect(() => {
     fetchEvents()
@@ -75,6 +94,12 @@ export default function ViewEventPage() {
     // Redirigir a configuración
     window.location.href = "/settings"
   }
+
+  const handleViewEvents = () => {
+  setIsUserMenuOpen(false)
+}
+
+  
 
   const getEventTypeColor = (type) => {
     const colors = {
@@ -162,41 +187,54 @@ export default function ViewEventPage() {
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2 text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 text-white hover:bg-white/10 px-2 sm:px-3 py-2 rounded-md transition-colors duration-200"
               >
-                <div className="w-8 h-8 rounded-full border-2 border-cyan-400 bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">{currentUser.initials}</span>
+                {/* Avatar */}
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-cyan-400 bg-gradient-to-r from-cyan-400 to-purple-500 flex items-center justify-center">
+                  <span className="text-white text-xs sm:text-sm font-medium">
+                    {organizer
+                      ? getInitials(organizer.nombre, organizer.apellido)
+                      : "?"}
+                  </span>
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium">{currentUser.name}</p>
+                  <p className="text-sm font-medium">
+                    {organizer
+                      ? `${organizer.nombre} ${organizer.apellido}`
+                      : "Cargando..."}
+                  </p>
                   <p className="text-xs text-white/70">Usuario</p>
                 </div>
-                <svg
-                  className={`w-4 h-4 transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
               </button>
 
-              {/* Menú desplegable FUNCIONAL */}
+              {/* Menú desplegable - TODAS LAS NAVEGACIONES CON REACT ROUTER */}
+              {/* Overlay para cerrar el menú - DEBE IR ANTES DEL MENÚ */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-slate-800 border border-white/20 rounded-lg shadow-xl z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-slate-800/98 backdrop-blur-md border border-white/20 rounded-lg shadow-2xl z-[9999]">
                   {/* Header del menú */}
                   <div className="px-4 py-3 border-b border-white/20">
-                    <p className="text-sm font-medium text-white">{currentUser.name}</p>
-                    <p className="text-xs text-white/70">{currentUser.email}</p>
+                    <p className="text-sm font-medium text-white">
+                      {organizer
+                        ? `${organizer.nombre} ${organizer.apellido}`
+                        : "Cargando..."}
+                    </p>
+                    <p className="text-xs text-white/70">
+                      {organizer ? organizer.email : ""}
+                    </p>
                   </div>
 
-                  {/* Opciones del menú */}
+                  {/* Opciones */}
                   <div className="py-1">
                     <button
                       onClick={handleProfile}
                       className="flex items-center w-full px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors duration-200"
                     >
-                      <svg className="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="mr-3 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -208,13 +246,15 @@ export default function ViewEventPage() {
                     </button>
 
                     <button
-                      onClick={() => {
-                        setIsUserMenuOpen(false)
-                        window.location.href = "/events"
-                      }}
+                      onClick={handleViewEvents}
                       className="flex items-center w-full px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors duration-200"
                     >
-                      <svg className="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="mr-3 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -229,12 +269,17 @@ export default function ViewEventPage() {
                       onClick={handleSettings}
                       className="flex items-center w-full px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors duration-200"
                     >
-                      <svg className="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="mr-3 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0..."
                         />
                         <path
                           strokeLinecap="round"
@@ -247,18 +292,32 @@ export default function ViewEventPage() {
                     </button>
                   </div>
 
-                  {/* Cerrar Sesión */}
+                  {/* Cerrar sesión */}
                   <div className="border-t border-white/20 py-1">
                     <button
-                      onClick={handleLogout}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (
+                          window.confirm(
+                            "¿Estás seguro de que quieres cerrar sesión?"
+                          )
+                        ) {
+                          handleLogout();
+                        }
+                      }}
                       className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200"
                     >
-                      <svg className="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="mr-3 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0..."
                         />
                       </svg>
                       Cerrar Sesión

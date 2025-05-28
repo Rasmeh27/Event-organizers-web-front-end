@@ -7,10 +7,12 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const togglePassword = () => setShowPassword(!showPassword);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:8080/api/auth/login", {
@@ -31,6 +33,8 @@ export default function LoginPage() {
       }
     } catch (err) {
       setError("Error de conexión con el servidor");
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -75,11 +79,28 @@ export default function LoginPage() {
             </span>
           </div>
 
+          {error && (
+            <div className="text-red-500 text-sm text-center mt-2">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded cursor-pointer transition duration-300 ease-in-out"
+            disabled={loading}
           >
-            Acceder
+            {loading ? (
+              <span className="flex items-center">
+                <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                Cargando...
+              </span>
+            ) : (
+              "Acceder"
+            )}
           </button>
         </form>
 
