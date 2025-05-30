@@ -10,54 +10,56 @@ export default function ViewEventPage() {
   const [organizer, setOrganizer] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(null);
 
- useEffect(() => {
-  const storedUser = localStorage.getItem("organizer");
-  console.log("Valor de localStorage:", storedUser);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("organizer");
+    console.log("Valor de localStorage:", storedUser);
 
-  if (storedUser) {
-    const organizerData = JSON.parse(storedUser);
-    const organizerId = organizerData.id;
-    const organizerEmail = organizerData.email;
+    if (storedUser) {
+      const organizerData = JSON.parse(storedUser);
+      const organizerId = organizerData.id;
+      const organizerEmail = organizerData.email;
 
-    // Obtener información del organizador (opcional, si ya la estás usando para el perfil)
-    if (organizerId) {
-      fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
+      // Obtener información del organizador (opcional, si ya la estás usando para el perfil)
+      if (organizerId) {
+        fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
+          .then((res) => {
+            if (!res.ok)
+              throw new Error("Error al obtener datos del organizador");
+            return res.json();
+          })
+          .then((data) => {
+            console.log("Datos recibidos de la API:", data);
+            setOrganizer(data);
+          })
+          .catch((err) => {
+            console.error("Error:", err);
+            setOrganizer(null);
+          });
+      }
+
+      // Obtener eventos creados por este organizador
+      fetch(
+        `http://localhost:8080/api/eventos/my-events?email=${organizerEmail}`
+      )
         .then((res) => {
-          if (!res.ok) throw new Error("Error al obtener datos del organizador");
+          if (!res.ok) throw new Error("Error al obtener eventos del usuario");
           return res.json();
         })
         .then((data) => {
-          console.log("Datos recibidos de la API:", data);
-          setOrganizer(data);
+          console.log("Eventos del usuario:", data);
+          setEvent(data);
+          setLoading(false);
         })
         .catch((err) => {
-          console.error("Error:", err);
-          setOrganizer(null);
+          console.error("Error al obtener eventos:", err);
+          setEvent([]);
+          setLoading(false);
         });
+    } else {
+      console.warn("No hay usuario logueado en localStorage");
+      setLoading(false);
     }
-
-    // Obtener eventos creados por este organizador
-    fetch(`http://localhost:8080/api/eventos/my-events?email=${organizerEmail}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al obtener eventos del usuario");
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Eventos del usuario:", data);
-        setEvent(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error al obtener eventos:", err);
-        setEvent([]);
-        setLoading(false);
-      });
-  } else {
-    console.warn("No hay usuario logueado en localStorage");
-    setLoading(false);
-  }
-}, []);
-
+  }, []);
 
   const getInitials = (nombre, apellido) => {
     if (!nombre || !apellido) return "";
@@ -202,7 +204,7 @@ export default function ViewEventPage() {
               onClick={handleEventHome}
               className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
             >
-             Eventos
+              Eventos
             </button>
 
             {/* Crear evento */}
@@ -383,10 +385,7 @@ export default function ViewEventPage() {
 
       {/* Overlay para cerrar el menú */}
       {isUserMenuOpen && (
-        <div
-          className="fixed"
-          onClick={() => setIsUserMenuOpen(false)}
-        ></div>
+        <div className="fixed" onClick={() => setIsUserMenuOpen(false)}></div>
       )}
 
       {/* Main Content */}
@@ -550,12 +549,32 @@ export default function ViewEventPage() {
                         <span className="text-sm">{evento.ubication}</span>
                       </div>
                     </div>
+                    {/* Botón para editar evento*/}
+                    <button
+                      onClick={() => Navigate(`/edit-event/${evento.id}`)}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 mb-4 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 17h2m-1-1v-6m5.379-2.621a3 3 0 00-4.242-4.242L4 12.293V16h3.707l8.672-8.672z"
+                        />
+                      </svg>
+                      Editar Evento
+                    </button>
 
                     {/* Botón de eliminar */}
                     <button
                       onClick={() => handleDelete(evento.id)}
                       disabled={deleteLoading === evento.id}
-                      className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 text-white px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2"
+                      className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 text-white px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {deleteLoading === evento.id ? (
                         <>

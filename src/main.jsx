@@ -6,6 +6,8 @@ import LoginPage from './page/LoginPage.jsx'
 import PublishEvent from './page/PublishEvent.jsx'  
 import ViewEventPage from './page/ViewEventPage.jsx'
 import HomeEvent from './page/homeEvent.jsx'
+import EditEventPage from './page/EditEvenPage.jsx'
+import EventDetails from './page/EventDetails.jsx'
 import './App.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -18,6 +20,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
          <Route path="/home" element={<HomeEvent />} />
         <Route path="/publish" element={<PublishEvent />} />
         <Route path="/Myevents" element={<ViewEventPage />} />
+        <Route path="/edit-event/:id" element={<EditEventPage />} />
+        <Route path="/event/:id" element={<EventDetails />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
