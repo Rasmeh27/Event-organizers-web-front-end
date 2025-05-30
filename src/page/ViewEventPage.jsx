@@ -78,6 +78,12 @@ export default function ViewEventPage() {
     }
   };
 
+  const handleEventHome = () => {
+    setIsUserMenuOpen(false);
+    // Redirigir a eventos usando React Router
+    Navigate("/home");
+  };
+
   // Funciones del menú de usuario
   const handleLogout = () => {
     // Limpiar datos de sesión
@@ -152,7 +158,7 @@ export default function ViewEventPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
       {/* Header con usuario */}
-      <header className="border-b border-white/10 bg-black/20 backdrop-blur-sm">
+      <header className="border-b border-white/10 bg-black/20 backdrop-blur-sm z-50 relative">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center">
@@ -190,6 +196,13 @@ export default function ViewEventPage() {
                 />
               </svg>
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            </button>
+
+            <button
+              onClick={handleEventHome}
+              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
+            >
+             Eventos
             </button>
 
             {/* Crear evento */}

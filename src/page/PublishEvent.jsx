@@ -88,7 +88,13 @@ export default function PublishEvent() {
   const handleViewEvents = () => {
     setIsUserMenuOpen(false);
     // Redirigir a eventos usando React Router
-    navigate("/events");
+    navigate("/Myevents");
+  };
+
+  const handleEventHome = () => {
+    setIsUserMenuOpen(false);
+    // Redirigir a eventos usando React Router
+    navigate("/home");
   };
 
   //Aqui ira el handler para crear el evento
@@ -131,7 +137,7 @@ export default function PublishEvent() {
 
         // Opcional: redirigir a la lista de eventos después de crear
         setTimeout(() => {
-          navigate("/events");
+          navigate("/Myevents");
         }, 2000);
       } else {
         const msg = await res.text();
@@ -190,12 +196,21 @@ export default function PublishEvent() {
             </button>
 
             {/* Ver eventos - USANDO REACT ROUTER */}
+
+            <button
+              onClick={handleEventHome}
+              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
+            >
+             Eventos
+            </button>
+
             <button
               onClick={handleViewEvents}
               className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
             >
-              Ver eventos
+              Ver mis eventos
             </button>
+
 
             {/* Perfil de Usuario - RESPONSIVE MEJORADO */}
             <div className="relative">
