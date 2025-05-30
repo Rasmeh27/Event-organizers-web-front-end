@@ -158,7 +158,7 @@ export default function HomeEvent() {
 
             <button
               onClick={handleMyEvents}
-              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
+              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm cursor-pointer"
             >
               Ver mis eventos
             </button>
@@ -438,7 +438,7 @@ export default function HomeEvent() {
                     {/* Botón para ver más detalles */}
                     <button
                       onClick={() => Navigate(`/event/${evento.id}`)}
-                      className="w-full bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2"
+                      className="w-full bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path

@@ -202,7 +202,7 @@ export default function ViewEventPage() {
 
             <button
               onClick={handleEventHome}
-              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
+              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm cursor-pointer"
             >
               Eventos
             </button>

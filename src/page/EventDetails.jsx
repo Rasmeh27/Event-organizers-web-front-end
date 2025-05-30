@@ -156,7 +156,7 @@ export default function EventDetails({ eventId }) {
           <p className="text-white/70 mb-6">El evento que buscas no existe o ha sido eliminado</p>
           <button
             onClick={handleBackToEvents}
-            className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-medium"
+            className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-medium cursor-pointer"
           >
             Volver a eventos
           </button>
@@ -187,7 +187,7 @@ export default function EventDetails({ eventId }) {
             {/* Botón volver */}
             <button
               onClick={handleBackToEvents}
-              className="text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-200 text-sm flex items-center gap-2"
+              className="text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors duration-200 text-sm flex items-center gap-2 cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -210,7 +210,7 @@ export default function EventDetails({ eventId }) {
 
             <button
               onClick={handleMyEvents}
-              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
+              className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm cursor-pointer"
             >
               Ver mis eventos
             </button>
