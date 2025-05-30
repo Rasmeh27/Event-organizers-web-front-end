@@ -10,54 +10,58 @@ export default function ViewEventPage() {
   const [organizer, setOrganizer] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(null);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("organizer");
-    console.log("Valor de localStorage:", storedUser);
+ useEffect(() => {
+  const storedUser = localStorage.getItem("organizer");
+  console.log("Valor de localStorage:", storedUser);
 
-    if (storedUser) {
-      const organizerData = JSON.parse(storedUser);
-      const organizerId = organizerData.id;
-      console.log("ID del organizador:", organizerId);
+  if (storedUser) {
+    const organizerData = JSON.parse(storedUser);
+    const organizerId = organizerData.id;
+    const organizerEmail = organizerData.email;
 
-      if (organizerId) {
-        fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
-          .then((res) => {
-            if (!res.ok) throw new Error("Error al obtener datos");
-            return res.json();
-          })
-          .then((data) => {
-            console.log("Datos recibidos de la API:", data);
-            setOrganizer(data);
-          })
-          .catch((err) => {
-            console.error("Error:", err);
-            setOrganizer(null);
-          });
-      }
+    // Obtener información del organizador (opcional, si ya la estás usando para el perfil)
+    if (organizerId) {
+      fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener datos del organizador");
+          return res.json();
+        })
+        .then((data) => {
+          console.log("Datos recibidos de la API:", data);
+          setOrganizer(data);
+        })
+        .catch((err) => {
+          console.error("Error:", err);
+          setOrganizer(null);
+        });
     }
-  }, []);
+
+    // Obtener eventos creados por este organizador
+    fetch(`http://localhost:8080/api/eventos/my-events?email=${organizerEmail}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener eventos del usuario");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Eventos del usuario:", data);
+        setEvent(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error al obtener eventos:", err);
+        setEvent([]);
+        setLoading(false);
+      });
+  } else {
+    console.warn("No hay usuario logueado en localStorage");
+    setLoading(false);
+  }
+}, []);
+
 
   const getInitials = (nombre, apellido) => {
     if (!nombre || !apellido) return "";
     return `${nombre[0]}${apellido[0]}`.toUpperCase();
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = () => {
-    setLoading(true);
-    axios
-      .get("http://localhost:8080/api/eventos")
-      .then((response) => {
-        setEvent(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error al mostrar eventos:", error);
-        setLoading(false);
-      });
   };
 
   const Navigate = useNavigate();
@@ -391,7 +395,7 @@ export default function ViewEventPage() {
               />
             </svg>
             <h1 className="text-4xl font-bold text-white">
-              Eventos Publicados
+              Mis Eventos Publicados
             </h1>
           </div>
           <p className="text-white/70 text-lg">
