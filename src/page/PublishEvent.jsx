@@ -13,47 +13,57 @@ export default function PublishEvent() {
   const [dateTime, setDateTime] = useState("");
   const [ubication, setUbication] = useState("");
   const [image, setImage] = useState(""); //por el momento sera URL
-  const [type, setType] = useState("");
-  const labes = ["cover", "Free", "concert", "OpenBar", "Special Guest", "VIP"];
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [labels, setLabels] = useState([]);
+
+  const labes = [
+    { id: 1, name: "cover" },
+    { id: 2, name: "Free" },
+    { id: 3, name: "concert" },
+    { id: 4, name: "OpenBar" },
+    { id: 5, name: "Special Guest" },
+    { id: 6, name: "VIP" },
+  ];
 
   // Estado para el menú de usuario
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   useEffect(() => {
-  const storedUser = localStorage.getItem("organizer");
-  console.log("Valor de localStorage:", storedUser);
+    const storedUser = localStorage.getItem("organizer");
+    console.log("Valor de localStorage:", storedUser);
 
-  if (storedUser) {
-    const organizerData = JSON.parse(storedUser);
-    const organizerId = organizerData.id;
-    console.log("ID del organizador:", organizerId);
+    if (storedUser) {
+      const organizerData = JSON.parse(storedUser);
+      const organizerId = organizerData.id;
+      console.log("ID del organizador:", organizerId);
 
-    if (organizerId) {
-      fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Error al obtener datos");
-          return res.json();
-        })
-        .then((data) => {
-          console.log("Datos recibidos de la API:", data);
-          setOrganizer(data);
-        })
-        .catch((err) => {
-          console.error("Error:", err);
-          setOrganizer(null);
-        });
+      if (organizerId) {
+        fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Error al obtener datos");
+            return res.json();
+          })
+          .then((data) => {
+            console.log("Datos recibidos de la API:", data);
+            setOrganizer(data);
+          })
+          .catch((err) => {
+            console.error("Error:", err);
+            setOrganizer(null);
+          });
+      }
     }
-  }
-}, []);
-
-
+  }, []);
 
   const getInitials = (nombre, apellido) => {
     if (!nombre || !apellido) return "";
     return `${nombre[0]}${apellido[0]}`.toUpperCase();
   };
+
+  
+
 
   // Funciones del menú de usuario - ADAPTADAS A REACT ROUTER
   const handleLogout = () => {
@@ -97,34 +107,50 @@ export default function PublishEvent() {
     navigate("/home");
   };
 
+  const handleTypeToggle = (label) => {
+    setSelectedTypes((prevSelected) =>
+      prevSelected.some((item) => item.id === label.id)
+        ? prevSelected.filter((item) => item.id !== label.id)
+        : [...prevSelected, label]
+    );
+  };
+
   //Aqui ira el handler para crear el evento
   const handleEvent = async (e) => {
     e.preventDefault();
     setSuccess(false);
     setError("");
 
-    if (!type) {
+  
+  const etiquetasId = selectedTypes.map((item) => item.id);
+
+    if (selectedTypes === 0) {
       setError("Por favor selecciona un tipo de evento");
       return;
     }
 
-    const event = {
+    const eventDTO = {
       title,
       description,
       dateTime,
       ubication,
       image,
-      type,
+      organizerId: organizer.id,
+      etiquetaId: etiquetasId, // Usar etiquetasId en lugar de type
+      
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/eventos?organizerId=${organizer.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(event),
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/eventos?organizerId=${organizer.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(eventDTO),
+        }
+      );
 
       if (res.ok) {
         setSuccess(true);
@@ -133,7 +159,7 @@ export default function PublishEvent() {
         setDateTime("");
         setUbication("");
         setImage("");
-        setType("");
+        setSelectedTypes([]);
 
         // Opcional: redirigir a la lista de eventos después de crear
         setTimeout(() => {
@@ -201,7 +227,7 @@ export default function PublishEvent() {
               onClick={handleEventHome}
               className="text-white hover:bg-white/10 hidden sm:flex px-3 py-2 rounded-md transition-colors duration-200 text-sm"
             >
-             Eventos
+              Eventos
             </button>
 
             <button
@@ -210,7 +236,6 @@ export default function PublishEvent() {
             >
               Ver mis eventos
             </button>
-
 
             {/* Perfil de Usuario - RESPONSIVE MEJORADO */}
             <div className="relative">
@@ -557,27 +582,60 @@ export default function PublishEvent() {
                 />
               </div>
 
-              {/* Event Type Labels */}
+              {/* Event Type Labels - MODIFICADO PARA SELECCIÓN MÚLTIPLE */}
               <div className="space-y-3">
-                <label className="block text-white font-medium text-sm sm:text-base">
-                  Tipo de Evento
+                <label className="block text-white font-medium text-sm sm:text-base flex items-center justify-between">
+                  <span>Tipos de Evento</span>
+                  <span className="text-xs text-cyan-400 font-normal">
+                    Selecciona uno o más tipos
+                  </span>
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {labes.map((label) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => setType(label)}
-                      className={`px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                        type === label
-                          ? "bg-cyan-600 text-white border-2 border-cyan-600 shadow-lg shadow-cyan-600/25"
-                          : "bg-transparent text-cyan-400 border-2 border-cyan-400 hover:border-cyan-300 hover:text-cyan-300"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  {labes.map((label) => {
+                    const isSelected = selectedTypes.some(
+                      (item) => item.id === label.id
+                    );
+                    return (
+                      <button
+                        key={label.id}
+                        type="button"
+                        onClick={() => handleTypeToggle(label)}
+                        className={`px-3 py-2 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                          isSelected
+                            ? "bg-cyan-600 text-white border-2 border-cyan-600 shadow-lg shadow-cyan-600/25"
+                            : "bg-transparent text-cyan-400 border-2 border-cyan-400 hover:border-cyan-300 hover:text-cyan-300"
+                        }`}
+                      >
+                        {label.name}
+                        {isSelected && (
+                          <span className="ml-2 inline-flex items-center">
+                            <svg
+                              className="w-3 h-3" 
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
+
+                {/* Tipos seleccionados */}
+                {selectedTypes.length === 0 && (
+                  <div className="mt-2 text-sm text-white/70">
+                    <span>Tipos seleccionados: </span>
+                    <span className="text-cyan-400 font-medium">
+                      {selectedTypes.map(t => t.name).join(", ")}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Error Message */}

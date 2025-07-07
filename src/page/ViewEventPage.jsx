@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function ViewEventPage() {
-  const [event, setEvent] = useState([]);
+  const [events, setEvents] = useState([]); // Renombrado para evitar confusión con 'event'
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [organizer, setOrganizer] = useState(null);
@@ -12,14 +12,11 @@ export default function ViewEventPage() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("organizer");
-    console.log("Valor de localStorage:", storedUser);
-
     if (storedUser) {
       const organizerData = JSON.parse(storedUser);
       const organizerId = organizerData.id;
       const organizerEmail = organizerData.email;
 
-      // Obtener información del organizador (opcional, si ya la estás usando para el perfil)
       if (organizerId) {
         fetch(`http://localhost:8080/api/auth/organizer/${organizerId}`)
           .then((res) => {
@@ -27,17 +24,10 @@ export default function ViewEventPage() {
               throw new Error("Error al obtener datos del organizador");
             return res.json();
           })
-          .then((data) => {
-            console.log("Datos recibidos de la API:", data);
-            setOrganizer(data);
-          })
-          .catch((err) => {
-            console.error("Error:", err);
-            setOrganizer(null);
-          });
+          .then((data) => setOrganizer(data))
+          .catch(() => setOrganizer(null));
       }
 
-      // Obtener eventos creados por este organizador
       fetch(
         `http://localhost:8080/api/eventos/my-events?email=${organizerEmail}`
       )
@@ -46,17 +36,14 @@ export default function ViewEventPage() {
           return res.json();
         })
         .then((data) => {
-          console.log("Eventos del usuario:", data);
-          setEvent(data);
+          setEvents(data);
           setLoading(false);
         })
-        .catch((err) => {
-          console.error("Error al obtener eventos:", err);
-          setEvent([]);
+        .catch(() => {
+          setEvents([]);
           setLoading(false);
         });
     } else {
-      console.warn("No hay usuario logueado en localStorage");
       setLoading(false);
     }
   }, []);
@@ -69,10 +56,11 @@ export default function ViewEventPage() {
   const Navigate = useNavigate();
 
   const handleDelete = async (id) => {
+    if (!window.confirm("¿Estás seguro de que quieres eliminar este evento?")) return;
     setDeleteLoading(id);
     try {
       await axios.delete(`http://localhost:8080/api/eventos/${id}`);
-      setEvent(event.filter((e) => e.id !== id));
+      setEvents(events.filter((e) => e.id !== id));
     } catch (error) {
       console.error("Error al eliminar evento:", error);
     } finally {
@@ -82,35 +70,24 @@ export default function ViewEventPage() {
 
   const handleEventHome = () => {
     setIsUserMenuOpen(false);
-    // Redirigir a eventos usando React Router
     Navigate("/home");
   };
 
-  // Funciones del menú de usuario
   const handleLogout = () => {
-    // Limpiar datos de sesión
     localStorage.removeItem("organizer");
     sessionStorage.clear();
-
-    // Cerrar el menú
     setIsUserMenuOpen(false);
-
-    // Mostrar mensaje de confirmación (opcional)
     alert("Sesión cerrada exitosamente");
-
-    // Redirigir al login
     window.location.href = "/login";
   };
 
   const handleProfile = () => {
     setIsUserMenuOpen(false);
-    // Redirigir al perfil
     Navigate("/profile");
   };
 
   const handleSettings = () => {
     setIsUserMenuOpen(false);
-    // Redirigir a configuración
     window.location.href = "/settings";
   };
 
@@ -421,9 +398,8 @@ export default function ViewEventPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
           </div>
         ) : (
-          /* Grid de eventos */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {event.length === 0 ? (
+            {events.length === 0 ? (
               <div className="col-span-full text-center py-20">
                 <svg
                   className="w-16 h-16 text-white/30 mx-auto mb-4"
@@ -465,7 +441,7 @@ export default function ViewEventPage() {
                 </a>
               </div>
             ) : (
-              event.map((evento) => (
+              events.map((evento) => (
                 <div
                   key={evento.id}
                   className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden hover:scale-[1.02] transition-all duration-300"
@@ -475,24 +451,30 @@ export default function ViewEventPage() {
                     <div className="relative h-48 overflow-hidden">
                       <img
                         src={evento.image || "/placeholder.svg"}
-                        alt={evento.title}
+                        alt={evento.title || "Evento"}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src =
-                            "/placeholder.svg?height=200&width=400";
+                          e.target.onerror = null;
+                          e.target.src = "/placeholder.svg?height=200&width=400";
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                      {/* Badge del tipo de evento */}
-                      <div className="absolute top-3 right-3">
-                        <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium text-white ${getEventTypeColor(
-                            evento.type
-                          )}`}
-                        >
-                          {getEventTypeIcon(evento.type)}
-                          {evento.type}
-                        </span>
+                      {/* Badges de etiquetas */}
+                      <div className="absolute top-3 right-3 flex flex-wrap gap-2">
+                        {evento.etiquetas && evento.etiquetas.length > 0 ? (
+                          evento.etiquetas.map((etiqueta) => (
+                            <span
+                              key={etiqueta.id}
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium text-white bg-cyan-600 shadow-md shadow-cyan-800/30"
+                            >
+                              #{etiqueta.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium text-gray-400 bg-gray-700">
+                            Sin etiquetas
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}
@@ -505,7 +487,6 @@ export default function ViewEventPage() {
                     <p className="text-white/70 mb-4 line-clamp-2">
                       {evento.description}
                     </p>
-
                     {/* Detalles del evento */}
                     <div className="space-y-2 mb-6">
                       <div className="flex items-center gap-2 text-white/60">
@@ -549,7 +530,7 @@ export default function ViewEventPage() {
                         <span className="text-sm">{evento.ubication}</span>
                       </div>
                     </div>
-                    {/* Botón para editar evento*/}
+                    {/* Botón para editar evento */}
                     <button
                       onClick={() => Navigate(`/edit-event/${evento.id}`)}
                       className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 mb-4 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2 cursor-pointer"
@@ -569,7 +550,6 @@ export default function ViewEventPage() {
                       </svg>
                       Editar Evento
                     </button>
-
                     {/* Botón de eliminar */}
                     <button
                       onClick={() => handleDelete(evento.id)}
